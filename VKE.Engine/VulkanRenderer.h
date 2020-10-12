@@ -21,18 +21,23 @@ namespace VKE
 		~VulkanRenderer();
 
 	private:
-		VkPhysicalDevice SelectPhysicalDevice();
+		VkPhysicalDevice SelectPhysicalDevice() const;
 		static bool PhysicalDeviceMeetsRequirements(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface);
 		static void DetectQueueFamilyIndices(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, int32_t* graphicsQueueIndex, int32_t* presentationQueueIndex);
 		static VulkanSwapchainSupport QuerySwapchainSupport(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface);
+		void CreateLogicalDevice(std::vector<const char *> & requiredValidationLayers);
 		
 		Platform* _platform;
 		
-		VkInstance _instance{};
-		VkDebugUtilsMessengerEXT _debugMessenger{};
-		VkPhysicalDevice _physicalDevice{};
-		VkDevice _device{};
-		VkSurfaceKHR _surface{};
+		VkInstance _instance;
+		VkDebugUtilsMessengerEXT _debugMessenger;
+		VkPhysicalDevice _physicalDevice;
+		VkDevice _device;
+		VkSurfaceKHR _surface;
+		VkQueue _graphicsQueue;
+		int32_t _graphicsQueueIndex = -1;
+		VkQueue _presentationQueue;
+		int32_t _presentationQueueIndex = -1;
 	};
 }
 

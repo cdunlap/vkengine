@@ -96,11 +96,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine.h" />
+    <ClInclude Include="include\vke_assert.h" />
+    <ClInclude Include="include\vke_defs.h" />
+    <ClInclude Include="include\vke_types.h" />
     <ClInclude Include="Logger.h" />
     <ClInclude Include="Platform.h" />
-    <ClInclude Include="vke_assert.h" />
-    <ClInclude Include="vke_defs.h" />
-    <ClInclude Include="vke_types.h" />
     <ClInclude Include="VulkanRenderer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

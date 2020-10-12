@@ -110,6 +110,12 @@ namespace VKE
 
 		// Surface
 		_platform->CreateSurface(_instance, &_surface);
+
+		// Physical device
+		_physicalDevice = SelectPhysicalDevice();
+
+		// Logical device
+		CreateLogicalDevice(requiredValidationLayers);
 	}
 
 	VulkanRenderer::~VulkanRenderer()
@@ -123,7 +129,7 @@ namespace VKE
 		vkDestroyInstance(_instance, nullptr);
 	}
 
-	VkPhysicalDevice VulkanRenderer::SelectPhysicalDevice()
+	VkPhysicalDevice VulkanRenderer::SelectPhysicalDevice() const
 	{
 		uint32_t deviceCount = 0;
 		VK_CHECK(vkEnumeratePhysicalDevices(_instance, &deviceCount, nullptr));
@@ -168,8 +174,35 @@ namespace VKE
 		std::vector<const char*> requiredExtensions = {
 			VK_KHR_SWAPCHAIN_EXTENSION_NAME
 		};
+
+		bool success = true;
+		for(auto & requiredExtension : requiredExtensions)
+		{
+			bool found = false;
+			for(auto & availableExtension : availableExtensions)
+			{
+				if(strcmp(requiredExtension, availableExtension.extensionName) == 0)
+				{
+					found = true;
+					break;
+				}
+
+				if(!found)
+				{
+					success = false;
+					break;
+				}
+			}
+		}
+
+		bool swapChainMeetsReq = false;
+		if(supportsRequiredQueueFamilies)
+		{
+			swapChainMeetsReq = !swapchainSupport.Formats.empty() &&
+				!swapchainSupport.PresentationModes.empty();
+		}
 		
-		return true;
+		return supportsRequiredQueueFamilies && swapChainMeetsReq && features.samplerAnisotropy;
 	}
 
 	void VulkanRenderer::DetectQueueFamilyIndices(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, int32_t* graphicsQueueIndex, int32_t* presentationQueueIndex)
@@ -219,6 +252,47 @@ namespace VKE
 		return support;
 	}
 
+	void VulkanRenderer::CreateLogicalDevice(std::vector<const char*>& requiredValidationLayers)
+	{
+		int32_t graphicsQueueIndex = -1;
+		int32_t presentationQueueIndex = -1;
+		VulkanRenderer::DetectQueueFamilyIndices(_physicalDevice, _surface, &graphicsQueueIndex, &presentationQueueIndex);
 
+		const uint32_t indexCount = 2;
+		uint32_t indices[indexCount] = {
+			static_cast<uint32_t>(graphicsQueueIndex),
+			static_cast<uint32_t>(presentationQueueIndex)
+		};
+
+		VkDeviceQueueCreateInfo queueCreateInfo[indexCount];
+		for(uint32_t i = 0; i < indexCount; i++)
+		{
+			queueCreateInfo[i].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+			queueCreateInfo[i].queueFamilyIndex = indices[i];
+			queueCreateInfo[i].queueCount = 1;
+			queueCreateInfo[i].flags = 0;
+			queueCreateInfo[i].pNext = nullptr;
+			float32_t queuePriority = 1.0f;
+			queueCreateInfo[i].pQueuePriorities = &queuePriority;			
+		}
+
+		VkPhysicalDeviceFeatures deviceFeatures = {};
+		deviceFeatures.samplerAnisotropy = VK_TRUE;
+
+		// TODO: Disable on release builds
+		VkDeviceCreateInfo deviceCreateInfo = { VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
+		deviceCreateInfo.enabledLayerCount = static_cast<uint32_t>(requiredValidationLayers.size());
+		deviceCreateInfo.ppEnabledLayerNames = requiredValidationLayers.data();
+
+		// Create device
+		VK_CHECK(vkCreateDevice(_physicalDevice, &deviceCreateInfo, nullptr, &_device));
+
+		_graphicsQueueIndex = graphicsQueueIndex;
+		_presentationQueueIndex = presentationQueueIndex;
+
+		// Create queues
+		vkGetDeviceQueue(_device, _graphicsQueueIndex, 0, &_graphicsQueue);
+		vkGetDeviceQueue(_device, _presentationQueueIndex, 0, &_presentationQueue);
+	}
 
 }
