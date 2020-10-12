@@ -1,5 +1,5 @@
-#include "VKE/Logger.h"
-#include "VKE/Engine.h"
+#include "Logger.h"
+#include "Engine.h"
 
 int main(int argc, const char ** argv) {
 	VKE::Logger::Info("Initializing engine %d", 4);

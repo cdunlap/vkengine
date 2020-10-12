@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "defs.h"
+#include "vke_defs.h"
 
 // Assertions
 #ifdef ENABLE_ASSERTS

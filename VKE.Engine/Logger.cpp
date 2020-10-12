@@ -3,7 +3,7 @@
 #include <string>
 #include <iostream>
 
-#include "assert.h"
+#include "vke_assert.h"
 
 namespace VKE
 {

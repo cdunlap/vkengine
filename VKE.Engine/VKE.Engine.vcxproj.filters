@@ -13,50 +13,44 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Header Files\VKE">
-      <UniqueIdentifier>{e01a1249-dafe-4c57-badf-6628dc3d4719}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\VKE">
-      <UniqueIdentifier>{90624bd9-408d-4cc9-8888-c6066376d486}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="VKE\Logger.cpp">
-      <Filter>Source Files\VKE</Filter>
+    <ClCompile Include="Engine.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="VKE\Platform.cpp">
-      <Filter>Source Files\VKE</Filter>
+    <ClCompile Include="Logger.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="VKE\Engine.cpp">
-      <Filter>Source Files\VKE</Filter>
+    <ClCompile Include="Platform.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="VKE\VulkanRenderer.cpp">
-      <Filter>Source Files\VKE</Filter>
+    <ClCompile Include="VulkanRenderer.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="types.h">
+    <ClInclude Include="vke_types.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="assert.h">
+    <ClInclude Include="vke_assert.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VKE\Logger.h">
-      <Filter>Header Files\VKE</Filter>
+    <ClInclude Include="vke_defs.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VKE\Platform.h">
-      <Filter>Header Files\VKE</Filter>
+    <ClInclude Include="Engine.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VKE\Engine.h">
-      <Filter>Header Files\VKE</Filter>
+    <ClInclude Include="Logger.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VKE\VulkanRenderer.h">
-      <Filter>Header Files\VKE</Filter>
+    <ClInclude Include="Platform.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="defs.h">
+    <ClInclude Include="VulkanRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "types.h"
+#include "vke_types.h"
 
 namespace VKE {
 	class Platform;

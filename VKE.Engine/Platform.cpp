@@ -6,6 +6,8 @@
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
 
+#include "VulkanRenderer.h"
+
 namespace VKE
 {
 	Platform::Platform(Engine* engine, const char* applicationName)
@@ -44,6 +46,11 @@ namespace VKE
 		}
 
 		return true;
+	}
+
+	void Platform::CreateSurface(VkInstance instance, VkSurfaceKHR* surface) const
+	{
+		VK_CHECK(glfwCreateWindowSurface(instance, _window, nullptr, surface));
 	}
 
 }
