@@ -201,7 +201,8 @@ namespace VKE
 			swapChainMeetsReq = !swapchainSupport.Formats.empty() &&
 				!swapchainSupport.PresentationModes.empty();
 		}
-		
+
+        // NOTE: Could also look for discrete GPU. We could score and rank them based on features and capabilities.
 		return supportsRequiredQueueFamilies && swapChainMeetsReq && features.samplerAnisotropy;
 	}
 
@@ -209,7 +210,7 @@ namespace VKE
 	{
 		uint32_t queueFamilyCount = 0;
 		vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
-		std::vector<VkQueueFamilyProperties> familyProperties(queueFamilyCount);vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
+		std::vector<VkQueueFamilyProperties> familyProperties(queueFamilyCount);
 		vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, familyProperties.data());
 
 		for(uint32_t i = 0; i < familyProperties.size(); i++)
@@ -281,6 +282,15 @@ namespace VKE
 
 		// TODO: Disable on release builds
 		VkDeviceCreateInfo deviceCreateInfo = { VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
+		deviceCreateInfo.pQueueCreateInfos = queueCreateInfo;
+		deviceCreateInfo.queueCreateInfoCount = indexCount;
+        deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
+        deviceCreateInfo.enabledExtensionCount = 1;
+        deviceCreateInfo.pNext = nullptr;
+        const char* requiredExtensions[1] = {
+            VK_KHR_SWAPCHAIN_EXTENSION_NAME
+        };
+        deviceCreateInfo.ppEnabledExtensionNames = requiredExtensions;
 		deviceCreateInfo.enabledLayerCount = static_cast<uint32_t>(requiredValidationLayers.size());
 		deviceCreateInfo.ppEnabledLayerNames = requiredValidationLayers.data();
 
