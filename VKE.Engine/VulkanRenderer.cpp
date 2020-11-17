@@ -6,6 +6,8 @@
 #include <vector>
 #include <fstream>
 
+#include <glm/glm.hpp>
+
 namespace VKE
 {	
 	static VKAPI_ATTR VkBool32 VKAPI_CALL VulkanRendererDebugCallback (
@@ -120,6 +122,8 @@ namespace VKE
 
 		// Create the basic shader
 		CreateShader("main");
+
+		CreateSwapchain();
 	}
 
 	VulkanRenderer::~VulkanRenderer()
@@ -263,22 +267,22 @@ namespace VKE
 		int32_t presentationQueueIndex = -1;
 		VulkanRenderer::DetectQueueFamilyIndices(_physicalDevice, _surface, &graphicsQueueIndex, &presentationQueueIndex);
 
-		const uint32_t indexCount = 2;
-		uint32_t indices[indexCount] = {
-			static_cast<uint32_t>(graphicsQueueIndex),
-			static_cast<uint32_t>(presentationQueueIndex)
-		};
+		std::vector<uint32_t> queueIndices;
+		queueIndices.push_back(graphicsQueueIndex);
+		if (graphicsQueueIndex != presentationQueueIndex) {
+			queueIndices.push_back(presentationQueueIndex);
+		}
 
-		VkDeviceQueueCreateInfo queueCreateInfo[indexCount];
-		for(uint32_t i = 0; i < indexCount; i++)
+		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos(queueIndices.size());
+		for(uint32_t i = 0; i < queueIndices.size(); i++)
 		{
-			queueCreateInfo[i].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-			queueCreateInfo[i].queueFamilyIndex = indices[i];
-			queueCreateInfo[i].queueCount = 1;
-			queueCreateInfo[i].flags = 0;
-			queueCreateInfo[i].pNext = nullptr;
+			queueCreateInfos[i].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+			queueCreateInfos[i].queueFamilyIndex = queueIndices[i];
+			queueCreateInfos[i].queueCount = 1;
+			queueCreateInfos[i].flags = 0;
+			queueCreateInfos[i].pNext = nullptr;
 			float32_t queuePriority = 1.0f;
-			queueCreateInfo[i].pQueuePriorities = &queuePriority;			
+			queueCreateInfos[i].pQueuePriorities = &queuePriority;
 		}
 
 		VkPhysicalDeviceFeatures deviceFeatures = {};
@@ -286,8 +290,8 @@ namespace VKE
 
 		// TODO: Disable on release builds
 		VkDeviceCreateInfo deviceCreateInfo = { VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
-		deviceCreateInfo.pQueueCreateInfos = queueCreateInfo;
-		deviceCreateInfo.queueCreateInfoCount = indexCount;
+		deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
+		deviceCreateInfo.queueCreateInfoCount = (uint32_t)queueCreateInfos.size();
         deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
         deviceCreateInfo.enabledExtensionCount = 1;
         deviceCreateInfo.pNext = nullptr;
@@ -371,6 +375,89 @@ namespace VKE
 
 		free(vertShaderSrc);
 		free(fragShaderSrc);
+	}
+
+	void VulkanRenderer::CreateSwapchain()
+	{
+		VulkanSwapchainSupport swapchainSupport = VulkanRenderer::QuerySwapchainSupport(_physicalDevice, _surface);
+		VkSurfaceCapabilitiesKHR capabilities = swapchainSupport.Capabilities;
+
+		// Surface format
+		bool found = false;
+		for (auto format : swapchainSupport.Formats) {
+			if (format.format == VK_FORMAT_B8G8R8A8_UNORM && format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+				_swapchainImageFormat = format;
+				found = true;
+				break;
+			}
+		}
+
+		if (!found) {
+			_swapchainImageFormat = swapchainSupport.Formats[0];
+		}
+
+		// Presentation Mode
+		VkPresentModeKHR presentMode;
+		found = false;
+		for (auto mode : swapchainSupport.PresentationModes) {
+			if (mode == VK_PRESENT_MODE_MAILBOX_KHR) {
+				presentMode = mode;
+				found = true;
+			}
+		}
+
+		if (!found) {
+			presentMode = VK_PRESENT_MODE_FIFO_KHR;
+		}
+
+		// Swapchain extent
+		if (capabilities.currentExtent.width != UINT32_MAX) {
+			_swapchainExtent = capabilities.currentExtent;
+		}
+		else {
+			Extent2D extent = _platform->GetFramebufferExtent();
+			_swapchainExtent = { (uint32_t)extent.width, (uint32_t)extent.height };
+
+			// Clamp to max allowed by GPU
+			_swapchainExtent.width = glm::clamp(_swapchainExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
+			_swapchainExtent.height = glm::clamp(_swapchainExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
+		}
+
+		uint32_t imageCount = capabilities.minImageCount + 1;
+		if (capabilities.maxImageCount > 0 && imageCount > capabilities.maxImageCount) {
+			imageCount = capabilities.maxImageCount;
+		}
+
+		// Swapchain create info
+		VkSwapchainCreateInfoKHR swapchainCreateInfo = { VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR };
+		swapchainCreateInfo.surface = _surface;
+		swapchainCreateInfo.minImageCount = imageCount;
+		swapchainCreateInfo.imageFormat = _swapchainImageFormat.format;
+		swapchainCreateInfo.imageColorSpace = _swapchainImageFormat.colorSpace;
+		swapchainCreateInfo.imageExtent = _swapchainExtent;
+		swapchainCreateInfo.imageArrayLayers = 1;
+		swapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+
+		// Setup queue family indices
+		if (_graphicsQueueIndex != _presentationQueueIndex) {
+			uint32_t queueIndices[2] = { (uint32_t)_graphicsQueueIndex, (uint32_t)_presentationQueueIndex };
+			swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+			swapchainCreateInfo.queueFamilyIndexCount = 2;
+			swapchainCreateInfo.pQueueFamilyIndices = queueIndices;
+		}
+		else {
+			swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+			swapchainCreateInfo.queueFamilyIndexCount = 0;
+			swapchainCreateInfo.pQueueFamilyIndices = nullptr;
+		}
+
+		swapchainCreateInfo.preTransform = capabilities.currentTransform;
+		swapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+		swapchainCreateInfo.presentMode = presentMode;
+		swapchainCreateInfo.clipped = VK_TRUE;
+		swapchainCreateInfo.oldSwapchain = nullptr; // Used after window resize, no need now
+
+		VK_CHECK(vkCreateSwapchainKHR(_device, &swapchainCreateInfo, nullptr, &_swapchain));
 	}
 
 }

@@ -31,6 +31,13 @@ namespace VKE
 		glfwTerminate();
 	}
 
+	Extent2D Platform::GetFramebufferExtent() const
+	{
+		Extent2D extent;
+		glfwGetFramebufferSize(_window, &extent.width, &extent.height);
+		return extent;
+	}
+
 	void Platform::GetRequiredExtensions(uint32_t* extensionCount, const char*** extensionNames)
 	{
 		*extensionNames = glfwGetRequiredInstanceExtensions(extensionCount);

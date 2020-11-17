@@ -28,6 +28,7 @@ namespace VKE
 		void CreateLogicalDevice(std::vector<const char *> & requiredValidationLayers);
 		char* ReadShaderFile(const char* filename, const char* shaderType, uint64_t* fileSize) const;
 		void CreateShader(const char* name);
+		void CreateSwapchain();
 
 		Platform* _platform;
 		
@@ -43,6 +44,10 @@ namespace VKE
 
 		uint64_t _shaderStageCount;
 		std::vector<VkPipelineShaderStageCreateInfo> _shaderStages;
+
+		VkSurfaceFormatKHR _swapchainImageFormat;
+		VkExtent2D _swapchainExtent;
+		VkSwapchainKHR _swapchain;
 	};
 }
 

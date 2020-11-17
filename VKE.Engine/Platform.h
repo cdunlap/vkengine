@@ -16,6 +16,8 @@ namespace VKE {
 		~Platform();
 
 		GLFWwindow* GetWindow() const { return _window; }
+		Extent2D GetFramebufferExtent() const;
+
 		static void GetRequiredExtensions(uint32_t* extensionCount, const char*** extensionNames);
 		
 		bool StartGameLoop() const;
