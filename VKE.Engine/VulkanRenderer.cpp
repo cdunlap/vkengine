@@ -4,6 +4,7 @@
 #include "VulkanRenderer.h"
 
 #include <vector>
+#include <fstream>
 
 namespace VKE
 {	
@@ -116,6 +117,9 @@ namespace VKE
 
 		// Logical device
 		CreateLogicalDevice(requiredValidationLayers);
+
+		// Create the basic shader
+		CreateShader("main");
 	}
 
 	VulkanRenderer::~VulkanRenderer()
@@ -303,6 +307,70 @@ namespace VKE
 		// Create queues
 		vkGetDeviceQueue(_device, _graphicsQueueIndex, 0, &_graphicsQueue);
 		vkGetDeviceQueue(_device, _presentationQueueIndex, 0, &_presentationQueue);
+	}
+
+	char* VulkanRenderer::ReadShaderFile(const char* filename, const char* shaderType, uint64_t* fileSize) const
+	{
+		ASSERT_MSG(shaderType == "frag" || shaderType == "vert", "Unexpected shader type string");
+		char buffer[256];
+		uint32_t length = snprintf(buffer, sizeof(buffer), "shaders/%s.%s.spv", filename, shaderType);
+
+		if (length < 0) {
+			Logger::Fatal("Shader filename is too long");
+		}
+
+		std::ifstream file(buffer, std::ios::ate | std::ios::binary);
+		if (!file.is_open()) {
+			Logger::Fatal("Unable to open shader file %s.", buffer);
+		}
+
+		*fileSize = (uint64_t)file.tellg();
+		char* fb = (char*)malloc(*fileSize); // REMEMBER TO FREE THIS!
+		file.seekg(0);
+		file.read(fb, *fileSize);
+		file.close();
+
+		return fb;
+	}
+
+	void VulkanRenderer::CreateShader(const char* name)
+	{
+		// Vert shader
+		uint64_t vertShaderSize;
+		char* vertShaderSrc = ReadShaderFile(name, "vert", &vertShaderSize);
+		VkShaderModuleCreateInfo vertShaderCreateInfo = { VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
+		vertShaderCreateInfo.codeSize = vertShaderSize;
+		vertShaderCreateInfo.pCode = (uint32_t *)vertShaderSrc;
+		VkShaderModule vertShaderModule;
+		VK_CHECK(vkCreateShaderModule(_device, &vertShaderCreateInfo, nullptr, &vertShaderModule));
+
+		// Frag Shader
+		uint64_t fragShaderSize;
+		char* fragShaderSrc = ReadShaderFile(name, "frag", &fragShaderSize);
+		VkShaderModuleCreateInfo fragShaderCreateInfo = { VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
+		fragShaderCreateInfo.codeSize = fragShaderSize;
+		fragShaderCreateInfo.pCode = (uint32_t*)fragShaderSrc;
+		VkShaderModule fragShaderModule;
+		VK_CHECK(vkCreateShaderModule(_device, &fragShaderCreateInfo, nullptr, &fragShaderModule));
+
+		// Vert shader stage
+		VkPipelineShaderStageCreateInfo vertShaderStageInfo = { VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO };
+		vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+		vertShaderStageInfo.module = vertShaderModule;
+		vertShaderStageInfo.pName = "main";
+
+		// Frag shader stage
+		VkPipelineShaderStageCreateInfo fragShaderStageInfo = { VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO };
+		fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+		fragShaderStageInfo.module = fragShaderModule;
+		fragShaderStageInfo.pName = "main";
+
+		_shaderStageCount = 2;
+		_shaderStages.push_back(vertShaderStageInfo);
+		_shaderStages.push_back(fragShaderStageInfo);
+
+		free(vertShaderSrc);
+		free(fragShaderSrc);
 	}
 
 }

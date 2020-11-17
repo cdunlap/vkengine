@@ -26,7 +26,9 @@ namespace VKE
 		static void DetectQueueFamilyIndices(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, int32_t* graphicsQueueIndex, int32_t* presentationQueueIndex);
 		static VulkanSwapchainSupport QuerySwapchainSupport(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface);
 		void CreateLogicalDevice(std::vector<const char *> & requiredValidationLayers);
-		
+		char* ReadShaderFile(const char* filename, const char* shaderType, uint64_t* fileSize) const;
+		void CreateShader(const char* name);
+
 		Platform* _platform;
 		
 		VkInstance _instance;
@@ -38,6 +40,9 @@ namespace VKE
 		int32_t _graphicsQueueIndex = -1;
 		VkQueue _presentationQueue;
 		int32_t _presentationQueueIndex = -1;
+
+		uint64_t _shaderStageCount;
+		std::vector<VkPipelineShaderStageCreateInfo> _shaderStages;
 	};
 }
 

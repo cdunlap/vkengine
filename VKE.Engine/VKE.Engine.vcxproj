@@ -104,6 +104,8 @@
     <ClInclude Include="VulkanRenderer.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\shaders\main.frag.glsl" />
+    <None Include="..\shaders\main.vert.glsl" />
     <None Include="..\tools\compile_shaders.bat" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
