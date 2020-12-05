@@ -29,6 +29,8 @@ namespace VKE
 		char* ReadShaderFile(const char* filename, const char* shaderType, uint64_t* fileSize) const;
 		void CreateShader(const char* name);
 		void CreateSwapchain();
+		void CreateSwapchainImagesAndViews();
+		void CreateRenderPass();
 
 		Platform* _platform;
 		
@@ -48,6 +50,9 @@ namespace VKE
 		VkSurfaceFormatKHR _swapchainImageFormat;
 		VkExtent2D _swapchainExtent;
 		VkSwapchainKHR _swapchain;
+		std::vector<VkImage> _swapchainImages;
+		std::vector<VkImageView> _swapchainImageViews;
+		VkRenderPass _renderPass;
 	};
 }
 
