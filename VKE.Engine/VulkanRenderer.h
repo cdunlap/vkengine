@@ -31,6 +31,7 @@ namespace VKE
 		void CreateSwapchain();
 		void CreateSwapchainImagesAndViews();
 		void CreateRenderPass();
+		void CreateGraphicsPipeline();
 
 		Platform* _platform;
 		
@@ -53,6 +54,8 @@ namespace VKE
 		std::vector<VkImage> _swapchainImages;
 		std::vector<VkImageView> _swapchainImageViews;
 		VkRenderPass _renderPass;
+		VkPipelineLayout _pipelineLayout;
+		VkPipeline _pipeline;
 	};
 }
 
